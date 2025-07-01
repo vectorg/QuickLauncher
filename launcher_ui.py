@@ -2,11 +2,13 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLi
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
 
+# 启动器主界面类，负责界面布局和控件初始化
 class LauncherUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('QuickLauncher')
-        self.resize(800, 500)
+        self.setWindowTitle('QuickLauncher')  # 设置窗口标题
+        self.resize(800, 500)  # 设置窗口大小
+        # 图标区域，显示可启动的图标
         self.icon_area = QListWidget()
         self.icon_area.setSelectionMode(QListWidget.MultiSelection)
         self.icon_area.setDragDropMode(QListWidget.InternalMove)
@@ -18,10 +20,12 @@ class LauncherUI(QWidget):
         self.icon_area.setDropIndicatorShown(True)
         self.icon_area.setDefaultDropAction(Qt.MoveAction)
 
+        # 命令区域，显示可执行的命令
         self.cmd_area = QListWidget()
         self.cmd_area.setSelectionMode(QListWidget.MultiSelection)
         self.cmd_area.setDragDropMode(QListWidget.InternalMove)
 
+        # 各种操作按钮
         btn_all = QPushButton('全部启动')
         btn_checked = QPushButton('启动勾选')
         btn_clear = QPushButton('清空勾选')
@@ -35,6 +39,7 @@ class LauncherUI(QWidget):
         btn_log = QPushButton('查看日志')
         btn_open_scripts = QPushButton('查看相关脚本文件夹')
 
+        # 图标区域按钮布局
         icon_btn_layout = QHBoxLayout()
         icon_btn_layout.addWidget(btn_all)
         icon_btn_layout.addWidget(btn_checked)
@@ -43,6 +48,7 @@ class LauncherUI(QWidget):
         icon_btn_layout.addWidget(self.delay_spin)
         icon_btn_layout.addStretch()
 
+        # 命令区域按钮布局
         cmd_btn_layout = QHBoxLayout()
         cmd_btn_layout.addWidget(btn_add_cmd)
         cmd_btn_layout.addWidget(btn_launch_cmd)
@@ -50,6 +56,7 @@ class LauncherUI(QWidget):
         cmd_btn_layout.addWidget(btn_open_scripts)
         cmd_btn_layout.addStretch()
 
+        # 主布局
         main_layout = QVBoxLayout()
         main_layout.addLayout(icon_btn_layout)
         main_layout.addWidget(QLabel('图标区域（可拖动排序，拖入可添加）'))
@@ -59,7 +66,7 @@ class LauncherUI(QWidget):
         main_layout.addWidget(self.cmd_area, 1)
         self.setLayout(main_layout)
 
-        # 按钮暴露，便于外部连接
+        # 按钮暴露为成员变量，便于外部连接信号
         self.btn_all = btn_all
         self.btn_checked = btn_checked
         self.btn_clear = btn_clear

@@ -6,17 +6,19 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from launcher_drag import DragDropHandler
 
+# 启动器主逻辑类，负责界面与数据的交互和功能实现
 class LauncherLogic:
     def __init__(self, ui, data):
         self.ui = ui
         self.data = data
-        self.log_file = 'launcher.log'
-        self.scripts_folder = os.path.abspath('.')
-        self.drag_handler = DragDropHandler(self)
-        self.connect_signals()
-        self.load_items()
-        self.update_numbers()
+        self.log_file = 'launcher.log'  # 日志文件
+        self.scripts_folder = os.path.abspath('.')  # 脚本文件夹路径
+        self.drag_handler = DragDropHandler(self)  # 拖拽处理器
+        self.connect_signals()  # 连接信号与槽
+        self.load_items()  # 加载数据
+        self.update_numbers()  # 更新编号显示
 
+    # 连接所有按钮和控件的信号
     def connect_signals(self):
         self.ui.btn_all.clicked.connect(self.launch_all)
         self.ui.btn_checked.clicked.connect(self.launch_checked)
@@ -33,9 +35,11 @@ class LauncherLogic:
         self.ui.cmd_area.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.cmd_area.customContextMenuRequested.connect(self.cmd_context_menu)
 
+    # 添加图标项到图标区域
     def add_icon_item(self, path):
         name = os.path.basename(path)
         item = QListWidgetItem(QIcon(path), name)
+        # 设置可勾选、可编辑、可拖动
         item.setFlags(item.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled)
         item.setCheckState(Qt.Unchecked)
         item.setData(Qt.UserRole, path)
@@ -43,6 +47,7 @@ class LauncherLogic:
         self.save_items()
         self.update_numbers()
 
+    # 图标区域右键菜单，删除图标项
     def icon_context_menu(self, pos):
         item = self.ui.icon_area.itemAt(pos)
         if item:
@@ -55,6 +60,7 @@ class LauncherLogic:
                 self.save_items()
                 self.update_numbers()
 
+    # 命令区域右键菜单，删除命令项
     def cmd_context_menu(self, pos):
         item = self.ui.cmd_area.itemAt(pos)
         if item:
@@ -66,20 +72,24 @@ class LauncherLogic:
                 self.ui.cmd_area.takeItem(self.ui.cmd_area.row(item))
                 self.save_items()
 
+    # 启动所有图标项
     def launch_all(self):
         self.launch_items([self.ui.icon_area.item(i) for i in range(self.ui.icon_area.count())])
 
+    # 启动所有勾选的图标项
     def launch_checked(self):
         items = [self.ui.icon_area.item(i) for i in range(self.ui.icon_area.count()) if self.ui.icon_area.item(i).checkState() == Qt.Checked]
         self.launch_items(items)
 
+    # 清空所有勾选
     def clear_checked(self):
         for i in range(self.ui.icon_area.count()):
             self.ui.icon_area.item(i).setCheckState(Qt.Unchecked)
         self.update_numbers()
 
+    # 启动传入的图标项列表
     def launch_items(self, items):
-        delay = self.ui.delay_spin.value()
+        delay = self.ui.delay_spin.value()  # 启动间隔
         for idx, item in enumerate(items):
             path = item.data(Qt.UserRole)
             try:
@@ -91,6 +101,7 @@ class LauncherLogic:
                 QApplication.processEvents()
                 time.sleep(delay)
 
+    # 更新图标项的编号显示
     def update_numbers(self):
         num = 1
         for i in range(self.ui.icon_area.count()):
@@ -101,6 +112,7 @@ class LauncherLogic:
             else:
                 item.setText(os.path.basename(item.data(Qt.UserRole)))
 
+    # 添加命令到命令区域
     def add_command(self):
         text, ok = QInputDialog.getText(self.ui, '添加命令', '输入命令:')
         if ok and text.strip():
@@ -108,6 +120,7 @@ class LauncherLogic:
             self.ui.cmd_area.addItem(item)
             self.save_items()
 
+    # 启动选中的命令
     def launch_cmd(self):
         items = [self.ui.cmd_area.item(i) for i in range(self.ui.cmd_area.count()) if self.ui.cmd_area.item(i).isSelected()]
         for item in items:
@@ -118,6 +131,7 @@ class LauncherLogic:
             except Exception as e:
                 self.write_log(f'命令启动失败: {cmd} 错误: {e}')
 
+    # 显示日志内容
     def show_log(self):
         if not os.path.exists(self.log_file):
             QMessageBox.information(self.ui, '日志', '暂无日志')
@@ -129,6 +143,7 @@ class LauncherLogic:
         dlg.setText(log[-2000:] if len(log) > 2000 else log)
         dlg.exec_()
 
+    # 打开脚本文件夹
     def open_scripts_folder(self):
         path = self.scripts_folder
         if os.path.exists(path):
@@ -136,12 +151,15 @@ class LauncherLogic:
         else:
             QMessageBox.warning(self.ui, '错误', '脚本文件夹不存在')
 
+    # 写入日志
     def write_log(self, msg):
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {msg}\n')
 
+    # 保存界面数据
     def save_items(self):
         self.data.save(self.ui)
 
+    # 加载界面数据
     def load_items(self):
         self.data.load(self.ui) 
