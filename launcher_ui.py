@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QLabel, QSpinBox, QListWidgetItem, QFileDialog, QInputDialog, QMessageBox, QStackedWidget, QSizePolicy, QFrame, QCheckBox)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
+from typing import Optional, Callable
 
 # 启动器主界面类，负责界面布局和控件初始化
 class LauncherUI(QWidget):
@@ -127,8 +128,18 @@ class IconItemWidget(QWidget):
         layout.addWidget(self.time_label)
         layout.setContentsMargins(2, 2, 2, 2)
         self.setLayout(layout)
-        # 整行可点击切换勾选
         self.setAttribute(Qt.WA_Hover, True)
+        self.checked_order = None  # 新增：勾选顺序号
+        self._item = None  # 保存对应的QListWidgetItem
+        self.on_checkbox_state_changed: Optional[Callable] = None  # 外部注入的回调
+        self.checkbox.stateChanged.connect(self._checkbox_state_changed)
+
+    def set_item(self, item):
+        self._item = item
+
+    def _checkbox_state_changed(self, state):
+        if self.on_checkbox_state_changed and self._item is not None:
+            self.on_checkbox_state_changed(self._item)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:

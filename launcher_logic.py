@@ -18,6 +18,7 @@ class LauncherLogic:
         self.connect_signals()  # 连接信号与槽
         self.load_items()  # 加载数据
         self.update_numbers()  # 更新编号显示
+        self.checked_order_counter = 1  # 新增：勾选顺序号计数器
 
     # 连接所有按钮和控件的信号
     def connect_signals(self):
@@ -29,7 +30,6 @@ class LauncherLogic:
         self.ui.btn_log.clicked.connect(self.show_log)
         self.ui.btn_open_scripts.clicked.connect(self.open_scripts_folder)
         self.ui.icon_area.model().rowsMoved.connect(self.update_numbers)
-        self.ui.icon_area.itemChanged.connect(self.update_numbers)
         self.ui.icon_area.itemSelectionChanged.connect(self.update_numbers)
         self.ui.icon_area.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.icon_area.customContextMenuRequested.connect(self.icon_context_menu)
@@ -46,6 +46,8 @@ class LauncherLogic:
         self.ui.icon_area.addItem(item)
         self.ui.icon_area.setItemWidget(item, widget)
         widget.checkbox.setChecked(False)
+        widget.set_item(item)
+        widget.on_checkbox_state_changed = self.on_icon_item_changed
         self.save_items()
         self.update_numbers()
 
@@ -80,8 +82,15 @@ class LauncherLogic:
 
     # 启动所有勾选的图标项
     def launch_checked(self):
-        items = [self.ui.icon_area.item(i) for i in range(self.ui.icon_area.count())
-                 if self.ui.icon_area.itemWidget(self.ui.icon_area.item(i)).checkbox.isChecked()]
+        # 按checked_order排序启动
+        checked_items = []
+        for i in range(self.ui.icon_area.count()):
+            item = self.ui.icon_area.item(i)
+            widget = self.ui.icon_area.itemWidget(item)
+            if widget and widget.checkbox.isChecked() and widget.checked_order is not None:
+                checked_items.append((item, widget.checked_order))
+        checked_items.sort(key=lambda x: x[1])
+        items = [item for item, _ in checked_items]
         self.launch_items(items)
 
     # 清空所有勾选
@@ -112,7 +121,16 @@ class LauncherLogic:
 
     # 更新图标项的编号显示
     def update_numbers(self):
-        num = 1
+        # 收集所有勾选的 item 及其顺序号
+        checked_items = []
+        for i in range(self.ui.icon_area.count()):
+            item = self.ui.icon_area.item(i)
+            widget = self.ui.icon_area.itemWidget(item)
+            if widget and widget.checkbox.isChecked() and widget.checked_order is not None:
+                checked_items.append((item, widget.checked_order))
+        # 按checked_order排序
+        checked_items.sort(key=lambda x: x[1])
+        # 给所有 item 设置显示
         for i in range(self.ui.icon_area.count()):
             item = self.ui.icon_area.item(i)
             path = item.data(Qt.UserRole)
@@ -121,9 +139,14 @@ class LauncherLogic:
                 icon = QIcon(path)
                 widget = IconItemWidget(icon, os.path.basename(path))
                 self.ui.icon_area.setItemWidget(item, widget)
-            if widget.checkbox.isChecked():
-                widget.name_label.setText(f'{num}. {os.path.basename(path)}')
-                num += 1
+            # 查找item在checked_items中的序号
+            idx = None
+            for pos, (checked_item, _) in enumerate(checked_items):
+                if item is checked_item:
+                    idx = pos + 1
+                    break
+            if idx is not None:
+                widget.name_label.setText(f'{idx}. {os.path.basename(path)}')
             else:
                 widget.name_label.setText(os.path.basename(path))
 
@@ -177,4 +200,21 @@ class LauncherLogic:
 
     # 加载界面数据
     def load_items(self):
-        self.data.load(self.ui) 
+        self.data.load(self.ui)
+        # 恢复控件的item和回调绑定
+        for i in range(self.ui.icon_area.count()):
+            item = self.ui.icon_area.item(i)
+            widget = self.ui.icon_area.itemWidget(item)
+            if widget:
+                widget.set_item(item)
+                widget.on_checkbox_state_changed = self.on_icon_item_changed
+
+    def on_icon_item_changed(self, item):
+        widget = self.ui.icon_area.itemWidget(item)
+        if widget:
+            if widget.checkbox.isChecked():
+                widget.checked_order = self.checked_order_counter
+                self.checked_order_counter += 1
+            else:
+                widget.checked_order = None
+        self.update_numbers() 
