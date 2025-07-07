@@ -13,8 +13,12 @@ class LauncherData:
     # 保存界面数据到文件
     def save(self, ui):
         data = {
-            # 保存图标区域的文件路径和勾选状态
-            'icons': [(ui.icon_area.item(i).data(Qt.UserRole), ui.icon_area.item(i).checkState() == Qt.Checked) for i in range(ui.icon_area.count())],
+            # 保存图标区域的文件路径、勾选状态和启动时间
+            'icons': [(
+                ui.icon_area.item(i).data(Qt.UserRole),
+                ui.icon_area.item(i).checkState() == Qt.Checked,
+                getattr(ui.icon_area.itemWidget(ui.icon_area.item(i)), 'time_label', None) and ui.icon_area.itemWidget(ui.icon_area.item(i)).time_label.text() or None
+            ) for i in range(ui.icon_area.count())],
             # 保存命令区域的所有命令文本
             'cmds': [ui.cmd_area.item(i).text() for i in range(ui.cmd_area.count())]
         }
@@ -29,14 +33,20 @@ class LauncherData:
         with open(self.data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         # 恢复图标区域
-        for path, checked in data.get('icons', []):
-            if os.path.exists(path):
-                item = QListWidgetItem(QIcon(path), os.path.basename(path))
-                # 设置可勾选、可编辑、可拖动
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled)
-                item.setCheckState(Qt.Checked if checked else Qt.Unchecked)
-                item.setData(Qt.UserRole, path)
-                ui.icon_area.addItem(item)
+        for icon_info in data.get('icons', []):
+            if isinstance(icon_info, (list, tuple)) and len(icon_info) >= 2:
+                path, checked = icon_info[0], icon_info[1]
+                launch_time = icon_info[2] if len(icon_info) > 2 else None
+                if os.path.exists(path):
+                    from PyQt5.QtGui import QIcon
+                    from launcher_ui import IconItemWidget
+                    item = QListWidgetItem()
+                    icon = QIcon(path)
+                    widget = IconItemWidget(icon, os.path.basename(path), launch_time)
+                    item.setData(Qt.UserRole, path)
+                    ui.icon_area.addItem(item)
+                    ui.icon_area.setItemWidget(item, widget)
+                    widget.checkbox.setChecked(checked)
         # 恢复命令区域
         for cmd in data.get('cmds', []):
             ui.cmd_area.addItem(QListWidgetItem(cmd)) 

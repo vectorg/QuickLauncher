@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QInputDialog, QApplica
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from launcher_drag import DragDropHandler
+from launcher_ui import IconItemWidget
 
 # 启动器主逻辑类，负责界面与数据的交互和功能实现
 class LauncherLogic:
@@ -38,12 +39,13 @@ class LauncherLogic:
     # 添加图标项到图标区域
     def add_icon_item(self, path):
         name = os.path.basename(path)
-        item = QListWidgetItem(QIcon(path), name)
-        # 设置可勾选、可编辑、可拖动
-        item.setFlags(item.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled)
-        item.setCheckState(Qt.Unchecked)
+        item = QListWidgetItem()
+        icon = QIcon(path)
+        widget = IconItemWidget(icon, name)
         item.setData(Qt.UserRole, path)
         self.ui.icon_area.addItem(item)
+        self.ui.icon_area.setItemWidget(item, widget)
+        widget.checkbox.setChecked(False)
         self.save_items()
         self.update_numbers()
 
@@ -78,13 +80,16 @@ class LauncherLogic:
 
     # 启动所有勾选的图标项
     def launch_checked(self):
-        items = [self.ui.icon_area.item(i) for i in range(self.ui.icon_area.count()) if self.ui.icon_area.item(i).checkState() == Qt.Checked]
+        items = [self.ui.icon_area.item(i) for i in range(self.ui.icon_area.count())
+                 if self.ui.icon_area.itemWidget(self.ui.icon_area.item(i)).checkbox.isChecked()]
         self.launch_items(items)
 
     # 清空所有勾选
     def clear_checked(self):
         for i in range(self.ui.icon_area.count()):
-            self.ui.icon_area.item(i).setCheckState(Qt.Unchecked)
+            widget = self.ui.icon_area.itemWidget(self.ui.icon_area.item(i))
+            if widget:
+                widget.checkbox.setChecked(False)
         self.update_numbers()
 
     # 启动传入的图标项列表
@@ -95,6 +100,10 @@ class LauncherLogic:
             try:
                 subprocess.Popen([path], shell=True)
                 self.write_log(f'启动: {path}')
+                # 设置启动时间
+                widget = self.ui.icon_area.itemWidget(item)
+                if widget:
+                    widget.set_launch_time(time.strftime('%H:%M:%S'))
             except Exception as e:
                 self.write_log(f'启动失败: {path} 错误: {e}')
             if idx < len(items) - 1:
@@ -106,11 +115,17 @@ class LauncherLogic:
         num = 1
         for i in range(self.ui.icon_area.count()):
             item = self.ui.icon_area.item(i)
-            if item.checkState() == Qt.Checked:
-                item.setText(f'{num}. {os.path.basename(item.data(Qt.UserRole))}')
+            path = item.data(Qt.UserRole)
+            widget = self.ui.icon_area.itemWidget(item)
+            if not widget:
+                icon = QIcon(path)
+                widget = IconItemWidget(icon, os.path.basename(path))
+                self.ui.icon_area.setItemWidget(item, widget)
+            if widget.checkbox.isChecked():
+                widget.name_label.setText(f'{num}. {os.path.basename(path)}')
                 num += 1
             else:
-                item.setText(os.path.basename(item.data(Qt.UserRole)))
+                widget.name_label.setText(os.path.basename(path))
 
     # 添加命令到命令区域
     def add_command(self):

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QLabel, QSpinBox, QListWidgetItem, QFileDialog, QInputDialog, QMessageBox, QStackedWidget, QSizePolicy, QFrame)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QLabel, QSpinBox, QListWidgetItem, QFileDialog, QInputDialog, QMessageBox, QStackedWidget, QSizePolicy, QFrame, QCheckBox)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
 
@@ -33,7 +33,6 @@ class LauncherUI(QWidget):
         self.icon_area.setSelectionMode(QListWidget.MultiSelection)
         self.icon_area.setDragDropMode(QListWidget.InternalMove)
         self.icon_area.setIconSize(QSize(48, 48))
-        self.icon_area.setSpacing(8)
         self.icon_area.setAcceptDrops(True)
         self.icon_area.setDragEnabled(True)
         self.icon_area.viewport().setAcceptDrops(True)
@@ -113,4 +112,28 @@ class LauncherUI(QWidget):
     def show_command_page(self):
         self.stack.setCurrentIndex(1)
         self.btn_software.setChecked(False)
-        self.btn_command.setChecked(True) 
+        self.btn_command.setChecked(True)
+
+class IconItemWidget(QWidget):
+    def __init__(self, icon, name, launch_time=None, parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        self.checkbox = QCheckBox()
+        self.name_label = QLabel(name)
+        self.time_label = QLabel(launch_time or "")
+        layout.addWidget(self.checkbox)
+        layout.addWidget(self.name_label)
+        layout.addStretch()
+        layout.addWidget(self.time_label)
+        layout.setContentsMargins(2, 2, 2, 2)
+        self.setLayout(layout)
+        # 整行可点击切换勾选
+        self.setAttribute(Qt.WA_Hover, True)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.checkbox.setChecked(not self.checkbox.isChecked())
+        super().mousePressEvent(event)
+
+    def set_launch_time(self, launch_time):
+        self.time_label.setText(launch_time) 
