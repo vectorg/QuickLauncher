@@ -12,7 +12,7 @@ class LauncherLogic:
     def __init__(self, ui, data):
         self.ui = ui
         self.data = data
-        self.log_file = 'launcher.log'  # 日志文件
+        self.log_file = 'data/launcher.log'  # 日志文件
         self.scripts_folder = os.path.abspath('.')  # 脚本文件夹路径
         self.drag_handler = DragDropHandler(self)  # 拖拽处理器
         self.connect_signals()  # 连接信号与槽

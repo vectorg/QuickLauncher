@@ -3,3 +3,4 @@ launcher_data.json
 __pycache__
 *.pyc
 _history/*
+data/*

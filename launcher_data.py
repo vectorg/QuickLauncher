@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 
 # 启动器数据管理类，负责保存和加载界面数据
 class LauncherData:
-    def __init__(self, data_file='launcher_data.json'):
+    def __init__(self, data_file='data/launcher_data.json'):
         # 数据文件路径
         self.data_file = data_file
 
