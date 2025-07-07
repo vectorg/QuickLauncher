@@ -1,7 +1,7 @@
 import os
 import time
 import subprocess
-from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QInputDialog, QApplication
+from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QInputDialog, QApplication, QMenu
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from launcher_drag import DragDropHandler
@@ -55,14 +55,24 @@ class LauncherLogic:
     def icon_context_menu(self, pos):
         item = self.ui.icon_area.itemAt(pos)
         if item:
-            menu = QMessageBox()
-            menu.setText(f'删除 {item.text()}?')
-            menu.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            ret = menu.exec_()
-            if ret == QMessageBox.Yes:
-                self.ui.icon_area.takeItem(self.ui.icon_area.row(item))
-                self.save_items()
-                self.update_numbers()
+            menu = QMenu(self.ui.icon_area)
+            action_launch = menu.addAction("立刻启动")
+            action_delete = menu.addAction("删除")
+            action = menu.exec_(self.ui.icon_area.mapToGlobal(pos))
+            if action == action_launch:
+                self.launch_items([item])
+            elif action == action_delete:
+                name = item.text() or os.path.basename(item.data(Qt.UserRole))
+                reply = QMessageBox.question(
+                    self.ui.icon_area,
+                    "确认删除",
+                    f"是否删除 {name}？",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if reply == QMessageBox.Yes:
+                    self.ui.icon_area.takeItem(self.ui.icon_area.row(item))
+                    self.save_items()
+                    self.update_numbers()
 
     # 命令区域右键菜单，删除命令项
     def cmd_context_menu(self, pos):
