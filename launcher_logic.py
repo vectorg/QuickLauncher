@@ -7,13 +7,16 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from launcher_drag import DragDropHandler
 from launcher_ui import IconItemWidget
+import subprocess_logger
 
 # 启动器主逻辑类，负责界面与数据的交互和功能实现
 class LauncherLogic:
     def __init__(self, ui, data):
         self.ui = ui
         self.data = data
-        self.log_file = 'data/launcher.log'  # 日志文件
+        self.log_dir = 'data/log'  # 新增：日志目录
+        os.makedirs(self.log_dir, exist_ok=True)  # 确保日志目录存在
+        self.log_file = os.path.join(self.log_dir, 'launcher.log')  # 日志文件
         self.scripts_folder = os.path.abspath('.')  # 脚本文件夹路径
         self.drag_handler = DragDropHandler(self)  # 拖拽处理器
         self.connect_signals()  # 连接信号与槽
@@ -174,16 +177,12 @@ class LauncherLogic:
         items = [self.ui.cmd_area.item(i) for i in range(self.ui.cmd_area.count()) if self.ui.cmd_area.item(i).isSelected()]
         for item in items:
             cmd = item.text()
-            timestamp = time.strftime('%Y%m%d_%H%M%S')
-            log_filename = f"data/cmd_{timestamp}.log"
             def run_cmd():
-                try:
-                    with open(log_filename, 'w', encoding='utf-8') as log_file:
-                        process = subprocess.Popen(cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT, encoding='utf-8')
-                        process.wait()
+                log_filename = subprocess_logger.run_cmd_with_log(cmd)
+                if log_filename:
                     self.write_log(f'启动命令: {cmd}，日志: {log_filename}')
-                except Exception as e:
-                    self.write_log(f'命令启动失败: {cmd} 错误: {e}')
+                else:
+                    self.write_log(f'命令启动失败: {cmd}')
             threading.Thread(target=run_cmd, daemon=True).start()
 
     # 显示日志内容
@@ -208,6 +207,7 @@ class LauncherLogic:
 
     # 写入日志
     def write_log(self, msg):
+        os.makedirs(self.log_dir, exist_ok=True)  # 确保日志目录存在
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {msg}\n')
 
