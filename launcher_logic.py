@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+import threading
 from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QInputDialog, QApplication, QMenu
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
@@ -173,11 +174,17 @@ class LauncherLogic:
         items = [self.ui.cmd_area.item(i) for i in range(self.ui.cmd_area.count()) if self.ui.cmd_area.item(i).isSelected()]
         for item in items:
             cmd = item.text()
-            try:
-                subprocess.Popen(cmd, shell=True)
-                self.write_log(f'启动命令: {cmd}')
-            except Exception as e:
-                self.write_log(f'命令启动失败: {cmd} 错误: {e}')
+            timestamp = time.strftime('%Y%m%d_%H%M%S')
+            log_filename = f"data/cmd_{timestamp}.log"
+            def run_cmd():
+                try:
+                    with open(log_filename, 'w', encoding='utf-8') as log_file:
+                        process = subprocess.Popen(cmd, shell=True, stdout=log_file, stderr=subprocess.STDOUT, encoding='utf-8')
+                        process.wait()
+                    self.write_log(f'启动命令: {cmd}，日志: {log_filename}')
+                except Exception as e:
+                    self.write_log(f'命令启动失败: {cmd} 错误: {e}')
+            threading.Thread(target=run_cmd, daemon=True).start()
 
     # 显示日志内容
     def show_log(self):
