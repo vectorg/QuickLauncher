@@ -1,11 +1,11 @@
 import subprocess
 import time
 import os
+from log_filename import generate_log_filename
 
 def run_cmd_with_log(cmd, log_dir='data/log'):
     os.makedirs(log_dir, exist_ok=True)
-    timestamp = time.strftime('%Y%m%d_%H%M%S')
-    log_filename = os.path.join(log_dir, f"cmd_{timestamp}.log")
+    log_filename = os.path.join(log_dir, generate_log_filename(cmd))
     print(f'[run_cmd_with_log] 日志路径: {log_filename}')
     try:
         with open(log_filename, 'w', encoding='utf-8') as log_file:
