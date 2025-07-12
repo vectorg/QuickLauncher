@@ -15,6 +15,10 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## bat 运行
+- 按下Ctrl+Shift，用鼠标将start.bat拖动到桌面(再松开Ctrl和Shift)，可生成快捷方式，双击快捷方式可运行。
+- 如果要在其他文件夹下直接双击bat运行，需要将其中的main.py改为绝对路径。
+
 ## 说明
 - 拖入可执行文件到图标区域即可添加
 - 勾选后依次显示序号，支持延迟依次启动
