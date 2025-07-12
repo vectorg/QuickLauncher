@@ -87,10 +87,37 @@ class LauncherLogic:
         item = self.ui.cmd_area.itemAt(pos)
         if item:
             menu = QMenu(self.ui.cmd_area)
-            action_delete = menu.addAction("删除")
+            action_launch = menu.addAction("立刻启动")
+            action_edit = menu.addAction("编辑")
             action_open_log = menu.addAction("打开日志文件")
+            action_delete = menu.addAction("删除")
             action = menu.exec_(self.ui.cmd_area.mapToGlobal(pos))
-            if action == action_delete:
+            if action == action_launch:
+                cmd = item.text()
+                def run_cmd():
+                    log_filename = subprocess_logger.run_cmd_with_log(cmd)
+                    if log_filename:
+                        self.write_log(f'启动命令: {cmd}，日志: {log_filename}')
+                    else:
+                        self.write_log(f'命令启动失败: {cmd}')
+                threading.Thread(target=run_cmd, daemon=True).start()
+            elif action == action_edit:
+                old_cmd = item.text()
+                input_dialog = QInputDialog(self.ui)
+                input_dialog.setWindowTitle('编辑命令')
+                input_dialog.setLabelText('修改命令:')
+                input_dialog.setTextValue(old_cmd)
+                input_dialog.resize(800, 100)
+                ok = input_dialog.exec_()
+                new_cmd = input_dialog.textValue()
+                if ok and new_cmd.strip():
+                    item.setText(new_cmd.strip())
+                    self.save_items()
+            elif action == action_open_log:
+                success, message = open_command_log(item.text(), self.log_dir, self.ui)
+                if success:
+                    self.write_log(message)
+            elif action == action_delete:
                 reply = QMessageBox.question(
                     self.ui.cmd_area,
                     "确认删除",
@@ -100,10 +127,6 @@ class LauncherLogic:
                 if reply == QMessageBox.Yes:
                     self.ui.cmd_area.takeItem(self.ui.cmd_area.row(item))
                     self.save_items()
-            elif action == action_open_log:
-                success, message = open_command_log(item.text(), self.log_dir, self.ui)
-                if success:
-                    self.write_log(message)
 
     # 启动所有图标项
     def launch_all(self):
