@@ -8,6 +8,7 @@ from PyQt5.QtCore import Qt
 from launcher_drag import DragDropHandler
 from launcher_ui import IconItemWidget
 import subprocess_logger
+from log_finder import open_command_log
 
 # 启动器主逻辑类，负责界面与数据的交互和功能实现
 class LauncherLogic:
@@ -82,13 +83,24 @@ class LauncherLogic:
     def cmd_context_menu(self, pos):
         item = self.ui.cmd_area.itemAt(pos)
         if item:
-            menu = QMessageBox()
-            menu.setText(f'删除命令: {item.text()}?')
-            menu.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            ret = menu.exec_()
-            if ret == QMessageBox.Yes:
-                self.ui.cmd_area.takeItem(self.ui.cmd_area.row(item))
-                self.save_items()
+            menu = QMenu(self.ui.cmd_area)
+            action_delete = menu.addAction("删除")
+            action_open_log = menu.addAction("打开日志文件")
+            action = menu.exec_(self.ui.cmd_area.mapToGlobal(pos))
+            if action == action_delete:
+                reply = QMessageBox.question(
+                    self.ui.cmd_area,
+                    "确认删除",
+                    f"是否删除命令: {item.text()}？",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if reply == QMessageBox.Yes:
+                    self.ui.cmd_area.takeItem(self.ui.cmd_area.row(item))
+                    self.save_items()
+            elif action == action_open_log:
+                success, message = open_command_log(item.text(), self.log_dir, self.ui)
+                if success:
+                    self.write_log(message)
 
     # 启动所有图标项
     def launch_all(self):
@@ -204,6 +216,8 @@ class LauncherLogic:
             os.startfile(path)
         else:
             QMessageBox.warning(self.ui, '错误', '脚本文件夹不存在')
+
+
 
     # 写入日志
     def write_log(self, msg):
