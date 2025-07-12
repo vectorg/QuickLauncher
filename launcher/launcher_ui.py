@@ -86,10 +86,20 @@ class LauncherUI(QWidget):
         self.stack.addWidget(icon_page)
         self.stack.addWidget(cmd_page)
 
-        # 主布局：左右分栏
-        main_layout = QHBoxLayout()
-        main_layout.addWidget(left_frame)
-        main_layout.addWidget(self.stack, 1)
+        # 右上角重启按钮
+        self.btn_restart = QPushButton('重启程序')
+        self.btn_restart.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # 右上角布局
+        top_right_layout = QHBoxLayout()
+        top_right_layout.addStretch()
+        top_right_layout.addWidget(self.btn_restart)
+        # 主布局：左右分栏 + 右上角
+        main_layout = QVBoxLayout()
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(left_frame)
+        h_layout.addWidget(self.stack, 1)
+        main_layout.addLayout(top_right_layout)
+        main_layout.addLayout(h_layout)
         self.setLayout(main_layout)
 
         # 按钮暴露为成员变量，便于外部连接信号

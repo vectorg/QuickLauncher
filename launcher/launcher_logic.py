@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import threading
+import sys
 from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QInputDialog, QApplication, QMenu
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
@@ -40,6 +41,7 @@ class LauncherLogic:
         self.ui.icon_area.customContextMenuRequested.connect(self.icon_context_menu)
         self.ui.cmd_area.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.cmd_area.customContextMenuRequested.connect(self.cmd_context_menu)
+        self.ui.btn_restart.clicked.connect(self.restart_program)
 
     # 添加图标项到图标区域
     def add_icon_item(self, path):
@@ -217,7 +219,11 @@ class LauncherLogic:
         else:
             QMessageBox.warning(self.ui, '错误', '脚本文件夹不存在')
 
-
+    # 重启当前程序
+    def restart_program(self):
+        """重启当前程序"""
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
     # 写入日志
     def write_log(self, msg):
