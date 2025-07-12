@@ -3,6 +3,8 @@ import json
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+from launcher.launcher_ui import IconItemWidget
 
 # 启动器数据管理类，负责保存和加载界面数据
 class LauncherData:
@@ -38,8 +40,6 @@ class LauncherData:
                 path, checked = icon_info[0], icon_info[1]
                 launch_time = icon_info[2] if len(icon_info) > 2 else None
                 if os.path.exists(path):
-                    from PyQt5.QtGui import QIcon
-                    from launcher_ui import IconItemWidget
                     item = QListWidgetItem()
                     icon = QIcon(path)
                     widget = IconItemWidget(icon, os.path.basename(path), launch_time)

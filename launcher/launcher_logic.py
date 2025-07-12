@@ -5,10 +5,10 @@ import threading
 from PyQt5.QtWidgets import QListWidgetItem, QMessageBox, QInputDialog, QApplication, QMenu
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
-from launcher_drag import DragDropHandler
-from launcher_ui import IconItemWidget
-import subprocess_logger
-from log_finder import open_command_log
+from launcher.launcher_drag import DragDropHandler
+from launcher.launcher_ui import IconItemWidget
+from utils import subprocess_logger
+from utils.log_finder import open_command_log
 
 # 启动器主逻辑类，负责界面与数据的交互和功能实现
 class LauncherLogic:

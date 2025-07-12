@@ -2,7 +2,7 @@ import os
 import re
 import json
 from PyQt5.QtWidgets import QMessageBox
-from log_filename import get_base_log_filename
+from utils.log_filename import get_base_log_filename
 
 def find_command_log_files(command, log_dir='data/log'):
     """

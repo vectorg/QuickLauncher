@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from launcher_ui import LauncherUI
-from launcher_logic import LauncherLogic
-from launcher_data import LauncherData
+from launcher.launcher_ui import LauncherUI
+from launcher.launcher_logic import LauncherLogic
+from launcher.launcher_data import LauncherData
 
 # 程序入口
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import subprocess
 import time
 import os
-from log_filename import generate_log_filename
+from utils.log_filename import generate_log_filename
 
 def run_cmd_with_log(cmd, log_dir='data/log'):
     os.makedirs(log_dir, exist_ok=True)
