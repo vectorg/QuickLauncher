@@ -17,12 +17,14 @@ class LauncherData:
             # 保存图标区域的文件路径、勾选状态和启动时间
             'icons': [(
                 ui.icon_area.item(i).data(Qt.UserRole),
-                ui.icon_area.item(i).checkState() == Qt.Checked,
-                getattr(ui.icon_area.itemWidget(ui.icon_area.item(i)), 'time_label', None) and ui.icon_area.itemWidget(ui.icon_area.item(i)).time_label.text() or None
+                ui.icon_area.itemWidget(ui.icon_area.item(i)).checkbox.isChecked(),
+                getattr(ui.icon_area.itemWidget(ui.icon_area.item(i)), 'time_label', None) and ui.icon_area.itemWidget(ui.icon_area.item(i)).time_label.text() or None,
+                getattr(ui.icon_area.itemWidget(ui.icon_area.item(i)), 'checked_order', None)
             ) for i in range(ui.icon_area.count())],
             # 保存命令区域的所有命令文本
             'cmds': [ui.cmd_area.item(i).text() for i in range(ui.cmd_area.count())]
         }
+        # print('[DEBUG][save] icons:', data['icons'])
         # 写入JSON文件
         with open(self.data_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -33,11 +35,13 @@ class LauncherData:
             return
         with open(self.data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
+        # print('[DEBUG][load] icons:', data.get('icons', []))
         # 恢复图标区域
         for icon_info in data.get('icons', []):
             if isinstance(icon_info, (list, tuple)) and len(icon_info) >= 2:
                 path, checked = icon_info[0], icon_info[1]
                 launch_time = icon_info[2] if len(icon_info) > 2 else None
+                checked_order = icon_info[3] if len(icon_info) > 3 else None
                 if os.path.exists(path):
                     item = QListWidgetItem()
                     icon = QIcon(path)
@@ -46,6 +50,7 @@ class LauncherData:
                     ui.icon_area.addItem(item)
                     ui.icon_area.setItemWidget(item, widget)
                     widget.checkbox.setChecked(checked)
+                    widget.checked_order = checked_order
         # 恢复命令区域
         for cmd in data.get('cmds', []):
             ui.cmd_area.addItem(QListWidgetItem(cmd)) 

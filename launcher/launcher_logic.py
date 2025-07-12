@@ -164,12 +164,13 @@ class LauncherLogic:
                 # 设置启动时间
                 widget = self.ui.icon_area.itemWidget(item)
                 if widget:
-                    widget.set_launch_time(time.strftime('%H:%M:%S'))
+                    widget.set_launch_time(time.strftime('%Y-%m-%d %H:%M:%S'))
             except Exception as e:
                 self.write_log(f'启动失败: {path} 错误: {e}')
             if idx < len(items) - 1:
                 QApplication.processEvents()
                 time.sleep(delay)
+        self.save_items()
 
     # 更新图标项的编号显示
     def update_numbers(self):
@@ -201,6 +202,7 @@ class LauncherLogic:
                 widget.name_label.setText(f'{idx}. {os.path.basename(path)}')
             else:
                 widget.name_label.setText(os.path.basename(path))
+        self.save_items()
 
     # 添加命令到命令区域
     def add_command(self):
