@@ -10,6 +10,7 @@ from launcher.launcher_drag import DragDropHandler
 from launcher.launcher_ui import IconItemWidget
 from utils import subprocess_logger
 from utils.log_finder import open_command_log
+from utils.process_utils import restart_program
 
 # 启动器主逻辑类，负责界面与数据的交互和功能实现
 class LauncherLogic:
@@ -41,7 +42,7 @@ class LauncherLogic:
         self.ui.icon_area.customContextMenuRequested.connect(self.icon_context_menu)
         self.ui.cmd_area.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.cmd_area.customContextMenuRequested.connect(self.cmd_context_menu)
-        self.ui.btn_restart.clicked.connect(self.restart_program)
+        self.ui.btn_restart.clicked.connect(restart_program)
 
     # 添加图标项到图标区域
     def add_icon_item(self, path):
@@ -218,12 +219,6 @@ class LauncherLogic:
             os.startfile(path)
         else:
             QMessageBox.warning(self.ui, '错误', '脚本文件夹不存在')
-
-    # 重启当前程序
-    def restart_program(self):
-        """重启当前程序"""
-        python = sys.executable
-        os.execl(python, python, *sys.argv)
 
     # 写入日志
     def write_log(self, msg):

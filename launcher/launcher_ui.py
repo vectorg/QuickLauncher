@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLi
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
 from typing import Optional, Callable
+from launcher.tray_manager import TrayManager
 
 # 启动器主界面类，负责界面布局和控件初始化
 class LauncherUI(QWidget):
@@ -115,6 +116,8 @@ class LauncherUI(QWidget):
         self.btn_software.clicked.connect(self.show_software_page)
         self.btn_command.clicked.connect(self.show_command_page)
 
+        self.tray_manager = TrayManager(self, 'QuickLauncher.ico')
+
     def show_software_page(self):
         self.stack.setCurrentIndex(0)
         self.btn_software.setChecked(True)
@@ -124,6 +127,14 @@ class LauncherUI(QWidget):
         self.stack.setCurrentIndex(1)
         self.btn_software.setChecked(False)
         self.btn_command.setChecked(True)
+
+    def closeEvent(self, event):
+        event.ignore()
+        self.hide()
+        # self.tray_manager.show_message(
+        #     "QuickLauncher",
+        #     "程序已最小化到托盘，双击托盘图标可恢复。"
+        # )
 
 class IconItemWidget(QWidget):
     def __init__(self, icon, name, launch_time=None, parent=None):
