@@ -3,7 +3,6 @@ import json
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
 from launcher.launcher_ui import IconItemWidget
 
 # 启动器数据管理类，负责保存和加载界面数据

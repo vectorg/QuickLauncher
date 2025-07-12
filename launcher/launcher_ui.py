@@ -3,6 +3,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
 from typing import Optional, Callable
 from launcher.tray_manager import TrayManager
+from launcher.icon_creator import create_window_icon
 
 # 启动器主界面类，负责界面布局和控件初始化
 class LauncherUI(QWidget):
@@ -10,6 +11,8 @@ class LauncherUI(QWidget):
         super().__init__()
         self.setWindowTitle('QuickLauncher')  # 设置窗口标题
         self.resize(800, 500)  # 设置窗口大小
+        # 设置窗口图标
+        self.setWindowIcon(create_window_icon())
 
         # 左侧按钮
         self.btn_software = QPushButton('软件启动')
