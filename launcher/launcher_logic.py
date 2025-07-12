@@ -17,15 +17,15 @@ class LauncherLogic:
     def __init__(self, ui, data):
         self.ui = ui
         self.data = data
-        self.log_dir = 'data/log'  # 新增：日志目录
+        self.log_dir = 'data/log'  # 日志目录
         os.makedirs(self.log_dir, exist_ok=True)  # 确保日志目录存在
         self.log_file = os.path.join(self.log_dir, 'launcher.log')  # 日志文件
         self.scripts_folder = os.path.abspath('.')  # 脚本文件夹路径
         self.drag_handler = DragDropHandler(self)  # 拖拽处理器
         self.connect_signals()  # 连接信号与槽
+        self.checked_order_counter = 1  # 勾选顺序号计数器
         self.load_items()  # 加载数据
         self.update_numbers()  # 更新编号显示
-        self.checked_order_counter = 1  # 新增：勾选顺序号计数器
 
     # 连接所有按钮和控件的信号
     def connect_signals(self):
@@ -259,12 +259,17 @@ class LauncherLogic:
     def load_items(self):
         self.data.load(self.ui)
         # 恢复控件的item和回调绑定
+        max_checked_order = 0
         for i in range(self.ui.icon_area.count()):
             item = self.ui.icon_area.item(i)
             widget = self.ui.icon_area.itemWidget(item)
             if widget:
                 widget.set_item(item)
                 widget.on_checkbox_state_changed = self.on_icon_item_changed
+                # 检查最大 checked_order
+                if widget.checked_order is not None and widget.checked_order > max_checked_order:
+                    max_checked_order = widget.checked_order
+        self.checked_order_counter = max_checked_order + 1
 
     def on_icon_item_changed(self, item):
         widget = self.ui.icon_area.itemWidget(item)
