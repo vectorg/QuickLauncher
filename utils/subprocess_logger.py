@@ -9,20 +9,13 @@ def run_cmd_with_log(cmd, log_dir='data/log'):
     print(f'[run_cmd_with_log] 日志路径: {log_filename}')
     try:
         with open(log_filename, 'w', encoding='utf-8') as log_file:
-            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8', errors='replace')
             if process.stdout is not None:
-                while True:
-                    line = process.stdout.readline()
-                    if not line and process.poll() is not None:
-                        break
-                    if line:
-                        try:
-                            decoded = line.decode('gbk').rstrip()
-                        except UnicodeDecodeError:
-                            decoded = line.decode('utf-8', errors='replace').rstrip()
-                        print(decoded)
-                        log_file.write(decoded + '\n')
-                        log_file.flush()
+                for line in process.stdout:
+                    decoded = line.rstrip()
+                    print(decoded)
+                    log_file.write(decoded + '\n')
+                    log_file.flush()
             process.wait()
         print(f'命令执行完成，日志文件: {log_filename}')
         return log_filename
