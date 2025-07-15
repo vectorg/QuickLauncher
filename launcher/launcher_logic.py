@@ -8,6 +8,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from launcher.launcher_drag import DragDropHandler
 from launcher.launcher_ui import IconItemWidget
+from launcher.log_viewer import LogViewer
 from utils import subprocess_logger
 from utils.log_finder import open_command_log
 from utils.process_utils import restart_program
@@ -22,6 +23,10 @@ class LauncherLogic:
         self.log_file = os.path.join(self.log_dir, 'launcher.log')  # 日志文件
         self.scripts_folder = os.path.abspath('.')  # 脚本文件夹路径
         self.drag_handler = DragDropHandler(self)  # 拖拽处理器
+        
+        # 创建日志查看器
+        self.log_viewer = LogViewer(self.ui, self.log_dir)
+        
         self.connect_signals()  # 连接信号与槽
         self.checked_order_counter = 1  # 勾选顺序号计数器
         self.load_items()  # 加载数据
@@ -43,6 +48,10 @@ class LauncherLogic:
         self.ui.cmd_area.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.cmd_area.customContextMenuRequested.connect(self.cmd_context_menu)
         self.ui.btn_restart.clicked.connect(restart_program)
+        
+        # 绑定清空日志按钮
+        if hasattr(self.ui, 'btn_clear_log'):
+            self.ui.btn_clear_log.clicked.connect(self.log_viewer.clear_log_display)
 
     # 添加图标项到图标区域
     def add_icon_item(self, path):
@@ -94,13 +103,12 @@ class LauncherLogic:
             action = menu.exec_(self.ui.cmd_area.mapToGlobal(pos))
             if action == action_launch:
                 cmd = item.text()
-                def run_cmd():
-                    log_filename = subprocess_logger.run_cmd_with_log(cmd)
-                    if log_filename:
-                        self.write_log(f'启动命令: {cmd}，日志: {log_filename}')
-                    else:
-                        self.write_log(f'命令启动失败: {cmd}')
-                threading.Thread(target=run_cmd, daemon=True).start()
+                # 使用异步方式执行命令
+                log_filename = subprocess_logger.run_cmd_async_with_log(cmd)
+                if log_filename:
+                    self.write_log(f'异步启动命令: {cmd}，日志: {log_filename}')
+                    # 设置当前监控的日志文件
+                    self.log_viewer.set_current_log_file(log_filename)
             elif action == action_edit:
                 old_cmd = item.text()
                 input_dialog = QInputDialog(self.ui)
@@ -117,6 +125,8 @@ class LauncherLogic:
                 success, message = open_command_log(item.text(), self.log_dir, self.ui)
                 if success:
                     self.write_log(message)
+                    # 查找并显示该命令的日志
+                    self.log_viewer.find_and_display_cmd_log(item.text())
             elif action == action_delete:
                 reply = QMessageBox.question(
                     self.ui.cmd_area,
@@ -217,13 +227,12 @@ class LauncherLogic:
         items = [self.ui.cmd_area.item(i) for i in range(self.ui.cmd_area.count()) if self.ui.cmd_area.item(i).isSelected()]
         for item in items:
             cmd = item.text()
-            def run_cmd():
-                log_filename = subprocess_logger.run_cmd_with_log(cmd)
-                if log_filename:
-                    self.write_log(f'启动命令: {cmd}，日志: {log_filename}')
-                else:
-                    self.write_log(f'命令启动失败: {cmd}')
-            threading.Thread(target=run_cmd, daemon=True).start()
+            # 使用异步方式执行命令
+            log_filename = subprocess_logger.run_cmd_async_with_log(cmd)
+            if log_filename:
+                self.write_log(f'异步启动命令: {cmd}，日志: {log_filename}')
+                # 设置当前监控的日志文件
+                self.log_viewer.set_current_log_file(log_filename)
 
     # 显示日志内容
     def show_log(self):
@@ -247,9 +256,10 @@ class LauncherLogic:
 
     # 写入日志
     def write_log(self, msg):
+        log_entry = f'{time.strftime("%Y-%m-%d %H:%M:%S")} {msg}'
         os.makedirs(self.log_dir, exist_ok=True)  # 确保日志目录存在
         with open(self.log_file, 'a', encoding='utf-8') as f:
-            f.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {msg}\n')
+            f.write(log_entry + '\n')
 
     # 保存界面数据
     def save_items(self):

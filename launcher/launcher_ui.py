@@ -67,24 +67,20 @@ class LauncherUI(QWidget):
         icon_page.setLayout(icon_page_layout)
 
         # --- 命令启动页 ---
+        # 初始化命令列表
         self.cmd_area = QListWidget()
         self.cmd_area.setSelectionMode(QListWidget.MultiSelection)
         self.cmd_area.setDragDropMode(QListWidget.InternalMove)
+        
+        # 初始化命令按钮
         btn_add_cmd = QPushButton('添加命令')
         btn_launch_cmd = QPushButton('启动命令')
         btn_log = QPushButton('查看日志')
         btn_open_scripts = QPushButton('查看相关脚本文件夹')
-        cmd_btn_layout = QHBoxLayout()
-        cmd_btn_layout.addWidget(btn_add_cmd)
-        cmd_btn_layout.addWidget(btn_launch_cmd)
-        cmd_btn_layout.addWidget(btn_log)
-        cmd_btn_layout.addWidget(btn_open_scripts)
-        cmd_btn_layout.addStretch()
-        cmd_page_layout = QVBoxLayout()
-        cmd_page_layout.addWidget(QLabel('命令区域'))
-        cmd_page_layout.addWidget(self.cmd_area, 2)
-        cmd_page_layout.addLayout(cmd_btn_layout)
+        
+        # 创建基本命令页面，后续由LogViewer完成分割器布局
         cmd_page = QWidget()
+        cmd_page_layout = QVBoxLayout()
         cmd_page.setLayout(cmd_page_layout)
 
         self.stack.addWidget(icon_page)
