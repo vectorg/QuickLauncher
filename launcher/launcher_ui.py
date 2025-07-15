@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QLabel, QSpinBox, QListWidgetItem, QFileDialog, QInputDialog, QMessageBox, QStackedWidget, QSizePolicy, QFrame, QCheckBox)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtCore import Qt, QSize
 from typing import Optional, Callable
 from launcher.tray_manager import TrayManager
 from launcher.icon_creator import create_window_icon
+from utils.process_utils import restart_program
 
 # 启动器主界面类，负责界面布局和控件初始化
 class LauncherUI(QWidget):
@@ -134,6 +135,16 @@ class LauncherUI(QWidget):
         #     "QuickLauncher",
         #     "程序已最小化到托盘，双击托盘图标可恢复。"
         # )
+        
+    def keyPressEvent(self, event):
+        # 按ESC键隐藏窗口
+        if event.key() == Qt.Key_Escape:
+            self.hide()
+        # 按Ctrl+R重启程序
+        elif event.key() == Qt.Key_R and event.modifiers() == Qt.ControlModifier:
+            restart_program()
+        else:
+            super().keyPressEvent(event)
 
 class IconItemWidget(QWidget):
     def __init__(self, icon, name, launch_time=None, parent=None):
