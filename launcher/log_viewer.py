@@ -166,4 +166,15 @@ class LogViewer:
         if log_file:
             self.set_current_log_file(log_file)
             return True
-        return False 
+        return False
+        
+    def display_no_log_message(self, cmd):
+        """显示命令没有日志的提示信息"""
+        self.ui.log_display.clear()
+        self.ui.log_display.append(f"=== 命令没有日志文件 ===\n")
+        self.ui.log_display.append(f"命令: {cmd}\n")
+        self.ui.log_display.append("可能的原因:")
+        self.ui.log_display.append("1. 该命令还没有被执行过")
+        self.ui.log_display.append("2. 日志文件已被删除或移动")
+        # 修改提示，需要右键点击命令弹出菜单后才能点击立刻启动
+        self.ui.log_display.append("\n提示: 您可以右键点击命令弹出菜单后点击'立刻启动'来执行命令并生成日志") 

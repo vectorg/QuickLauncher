@@ -27,6 +27,9 @@ class LauncherLogic:
         # 创建日志查看器
         self.log_viewer = LogViewer(self.ui, self.log_dir)
         
+        # 设置cmd_area的log_viewer引用，用于空格键查看日志
+        self.ui.cmd_area.log_viewer = self.log_viewer
+        
         self.connect_signals()  # 连接信号与槽
         self.checked_order_counter = 1  # 勾选顺序号计数器
         self.load_items()  # 加载数据
@@ -100,6 +103,8 @@ class LauncherLogic:
             action_edit = menu.addAction("编辑")
             action_open_log = menu.addAction("打开日志文件")
             action_delete = menu.addAction("删除")
+            menu.addSeparator()
+            menu.addAction("提示: 按空格键可快速查看日志").setEnabled(False)
             action = menu.exec_(self.ui.cmd_area.mapToGlobal(pos))
             if action == action_launch:
                 cmd = item.text()
@@ -122,11 +127,12 @@ class LauncherLogic:
                     item.setText(new_cmd.strip())
                     self.save_items()
             elif action == action_open_log:
+                # 只打开日志文件，不在右边查看
                 success, message = open_command_log(item.text(), self.log_dir, self.ui)
                 if success:
                     self.write_log(message)
-                    # 查找并显示该命令的日志
-                    self.log_viewer.find_and_display_cmd_log(item.text())
+                    # # 查找并显示该命令的日志
+                    # self.log_viewer.find_and_display_cmd_log(item.text())
             elif action == action_delete:
                 reply = QMessageBox.question(
                     self.ui.cmd_area,

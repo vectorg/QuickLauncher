@@ -6,6 +6,25 @@ from launcher.tray_manager import TrayManager
 from launcher.icon_creator import create_window_icon
 from utils.process_utils import restart_program
 
+# 自定义命令列表控件，支持空格键查看日志
+class CommandListWidget(QListWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.log_viewer = None  # 将在LauncherLogic中设置
+        
+    def keyPressEvent(self, event):
+        # 按下空格键查看选中命令的日志
+        if event.key() == Qt.Key_Space and self.currentItem():
+            cmd = self.currentItem().text()
+            if self.log_viewer:
+                # 尝试查找并显示日志
+                found = self.log_viewer.find_and_display_cmd_log(cmd)
+                # 如果没有找到日志，显示提示信息
+                if not found:
+                    self.log_viewer.display_no_log_message(cmd)
+        else:
+            super().keyPressEvent(event)
+
 # 启动器主界面类，负责界面布局和控件初始化
 class LauncherUI(QWidget):
     def __init__(self):
@@ -68,8 +87,8 @@ class LauncherUI(QWidget):
         icon_page.setLayout(icon_page_layout)
 
         # --- 命令启动页 ---
-        # 初始化命令列表
-        self.cmd_area = QListWidget()
+        # 初始化命令列表，使用自定义的CommandListWidget
+        self.cmd_area = CommandListWidget()
         self.cmd_area.setSelectionMode(QListWidget.MultiSelection)
         self.cmd_area.setDragDropMode(QListWidget.InternalMove)
         
